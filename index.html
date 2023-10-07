@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Workdays Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Workdays Counter</h1>
+
+    <label for="month">Month:</label>
+    <select id="month" name="month">
+        <option value="0">January</option>
+        <option value="1">February</option>
+        <option value="2">March</option>
+        <option value="3">April</option>
+        <option value="4">May</option>
+        <option value="5">June</option>
+        <option value="6">July</option>
+        <option value="7">August</option>
+        <option value="8">September</option>
+        <option value="9">October</option>
+        <option value="10">November</option>
+        <option value="11">December</option>
+      </select>
+      
+
+    <label for="year">Year:</label>
+    <select id="year" name="year">
+        <!-- ...fill in the years as needed... -->
+    </select>
+
+    <button onclick="calculateWorkdays()">Calculate Workdays</button>
+    <div id="result" class="result"></div>
+
+    <script src="https://unpkg.com/dayjs/dayjs.min.js"></script>
+    <script>
+        function populateYearsAndMonths() {
+            const monthSelect = document.getElementById('month');
+            const yearSelect = document.getElementById('year');
+            const currentYear = dayjs().year();
+            const currentMonth = dayjs().month();
+            
+            monthSelect.value = currentMonth;
+
+            for (let i = currentYear - 100; i <= currentYear + 100; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                yearSelect.appendChild(option);
+                if (i === currentYear) {
+                    option.selected = true;
+                }
+            }
+        }
+
+        function calculateWorkdays() {
+            const selectedMonth = parseInt(document.getElementById('month').value);
+            const selectedYear = parseInt(document.getElementById('year').value);
+            const start = dayjs().year(selectedYear).month(selectedMonth - 1).date(24);
+            const end = dayjs().year(selectedYear).month(selectedMonth).date(23);
+
+            let count = 0;
+            for (let day = start; day.isBefore(end) || day.isSame(end); day = day.add(1, 'day')) {
+                if (day.day() >= 1 && day.day() <= 5) {
+                    count++;
+                }
+            }
+
+            document.getElementById('result').textContent = "There are " + count + " workdays between " + start.format('MM/DD/YYYY') + " and " + end.format('MM/DD/YYYY');
+        }
+
+        populateYearsAndMonths();
+    </script>
+</body>
+</html>
