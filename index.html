@@ -67,8 +67,11 @@
         async function calculateWorkdays() {
             const selectedMonth = parseInt(document.getElementById('month').value);
             const selectedYear = parseInt(document.getElementById('year').value);
-            const start = dayjs().year(selectedYear).month(selectedMonth).startOf('month');
-            const end = dayjs().year(selectedYear).month(selectedMonth).endOf('month');
+            const startMonth = selectedMonth === 11 ? selectedMonth - 1 : selectedMonth; // Set to November if December is selected
+            const endMonth = selectedMonth === 11 ? selectedMonth : (selectedMonth + 1) % 12; // Set to December if December is selected
+            const start = dayjs().year(selectedYear).month(startMonth).date(26);
+            const endYear = selectedMonth === 11 ? selectedYear : selectedYear + 1; // Keep same year if December is selected
+            const end = dayjs().year(endYear).month(endMonth).date(25);
 
             // Fetch holidays
             const holidaysResponse = await fetch('https://apigw1.bot.or.th/bot/public/financial-institutions-holidays/?year=' + selectedYear, {
@@ -84,6 +87,9 @@
                     date: holiday.Date,
                     name: holiday.HolidayDescription
                 };
+            }).filter(holiday => {
+                const holidayDate = dayjs(holiday.date);
+                return holidayDate.isAfter(start) && holidayDate.isBefore(end);
             });
 
             let count = 0;
@@ -99,7 +105,7 @@
                 // Check for public holidays
                 let holiday = holidays.find(h => h.date === day.format('YYYY-MM-DD'));
                 if (holiday) {
-                    publicHolidays.push(holiday.name);
+                    publicHolidays.push(`<li>${holiday.name} (${day.format('YYYY-MM-DD')})</li>`);
                 }
 
                 // Count as workday if not a weekend and not a public holiday
@@ -109,15 +115,18 @@
             }
 
             const totalDaysInMonth = end.diff(start, 'days') + 1;
+            const publicHolidaysList = publicHolidays.length > 0 ? "<ul>" + publicHolidays.join('') + "</ul>" : "None";
 
-            document.getElementById('result').innerHTML = "Month: " + start.format('MMMM YYYY') + "<br>" +
-                "Total Days: " + totalDaysInMonth + "<br>" +
-                "Total Weekend Days: " + totalWeekendDays + "<br>" +
-                "Total Public Holidays: " + publicHolidays.length + " (" + publicHolidays.join(', ') + ")" + "<br>" +
-                "Total Workdays: " + count + "<br>";
+            document.getElementById('result').innerHTML = "<strong>Selected Date:</strong> " + start.format('DD MMMM') + " - " + end.format('DD MMMM YYYY') + "<br>" +
+                "<strong>Total Workdays:</strong> " + count + "<br> <br>" +
+                "<strong>Total Days:</strong> " + totalDaysInMonth + "<br>" +
+                "<strong>Total Weekend Days:</strong> " + totalWeekendDays + "<br>" +
+                "<strong>Total Public Holidays:</strong> " + publicHolidays.length + "<br>" +
+                "<strong>Public Holidays:</strong> " + publicHolidaysList;
         }
 
         populateYearsAndMonths();
+
     </script>
 </body>
 
