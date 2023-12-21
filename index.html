@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Workdays Counter</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
+
         .result {
             margin-top: 20px;
             font-size: 20px;
         }
     </style>
 </head>
+
 <body>
     <h1>Workdays Counter</h1>
 
@@ -29,8 +32,8 @@
         <option value="9">October</option>
         <option value="10">November</option>
         <option value="11">December</option>
-      </select>
-      
+    </select>
+
 
     <label for="year">Year:</label>
     <select id="year" name="year">
@@ -47,7 +50,7 @@
             const yearSelect = document.getElementById('year');
             const currentYear = dayjs().year();
             const currentMonth = dayjs().month();
-            
+
             monthSelect.value = currentMonth;
 
             for (let i = currentYear - 100; i <= currentYear + 100; i++) {
@@ -61,23 +64,61 @@
             }
         }
 
-        function calculateWorkdays() {
+        async function calculateWorkdays() {
             const selectedMonth = parseInt(document.getElementById('month').value);
             const selectedYear = parseInt(document.getElementById('year').value);
-            const start = dayjs().year(selectedYear).month(selectedMonth - 1).date(26);
-            const end = dayjs().year(selectedYear).month(selectedMonth).date(25);
+            const start = dayjs().year(selectedYear).month(selectedMonth).startOf('month');
+            const end = dayjs().year(selectedYear).month(selectedMonth).endOf('month');
+
+            // Fetch holidays
+            const holidaysResponse = await fetch('https://apigw1.bot.or.th/bot/public/financial-institutions-holidays/?year=' + selectedYear, {
+                method: 'GET',
+                headers: {
+                    'X-IBM-Client-Id': '02861627-afc0-4c05-aa7a-ffcc52fc9b8a',
+                    'accept': 'application/json'
+                }
+            });
+            const holidaysData = await holidaysResponse.json();
+            const holidays = holidaysData.result.data.map(holiday => {
+                return {
+                    date: holiday.Date,
+                    name: holiday.HolidayDescription
+                };
+            });
 
             let count = 0;
+            let totalWeekendDays = 0;
+            let publicHolidays = [];
+
             for (let day = start; day.isBefore(end) || day.isSame(end); day = day.add(1, 'day')) {
-                if (day.day() >= 1 && day.day() <= 5) {
+                // Check for weekends
+                if (day.day() === 0 || day.day() === 6) {
+                    totalWeekendDays++;
+                }
+
+                // Check for public holidays
+                let holiday = holidays.find(h => h.date === day.format('YYYY-MM-DD'));
+                if (holiday) {
+                    publicHolidays.push(holiday.name);
+                }
+
+                // Count as workday if not a weekend and not a public holiday
+                if (day.day() >= 1 && day.day() <= 5 && !holiday) {
                     count++;
                 }
             }
 
-            document.getElementById('result').textContent = "There are " + count + " workdays between " + start.format('MM/DD/YYYY') + " and " + end.format('MM/DD/YYYY');
+            const totalDaysInMonth = end.diff(start, 'days') + 1;
+
+            document.getElementById('result').innerHTML = "Month: " + start.format('MMMM YYYY') + "<br>" +
+                "Total Days: " + totalDaysInMonth + "<br>" +
+                "Total Weekend Days: " + totalWeekendDays + "<br>" +
+                "Total Public Holidays: " + publicHolidays.length + " (" + publicHolidays.join(', ') + ")" + "<br>" +
+                "Total Workdays: " + count + "<br>";
         }
 
         populateYearsAndMonths();
     </script>
 </body>
+
 </html>
