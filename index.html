@@ -132,8 +132,8 @@
             const publicHolidaysList = publicHolidays.length > 0 ? "<ul>" + publicHolidays.join('') + "</ul>" : "None";
 
             document.getElementById('result').innerHTML = "<strong>Selected Date:</strong> " + start.format('DD MMMM YYYY') + " - " + end.format('DD MMMM YYYY') + "<br>" +
+                "<strong>Total Workdays:</strong> " + "<span style='font-size: 32px;font-style: oblique;font-weight: bold;'>" + count + "</span>" + "<br> <br>" +
                 "<strong>Total Days:</strong> " + totalDaysInMonth + "<br>" +
-                "<strong>Total Workdays:</strong> " + count + "<br>" +
                 "<strong>Total Weekend Days:</strong> " + totalWeekendDays + "<br>" +
                 "<strong>Total Public Holidays:</strong> " + publicHolidays.length + "<br>" +
                 "<strong>Public Holidays:</strong> " + publicHolidaysList;
