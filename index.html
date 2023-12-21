@@ -18,6 +18,9 @@
 <body>
     <h1>Workdays Counter</h1>
 
+    <label for="date">Start Date:</label>
+    <select id="date" name="date"></select>
+
     <label for="month">Month:</label>
     <select id="month" name="month">
         <option value="0">January</option>
@@ -45,33 +48,44 @@
 
     <script src="https://unpkg.com/dayjs/dayjs.min.js"></script>
     <script>
-        function populateYearsAndMonths() {
+        function populateYearsMonthsAndDates() {
             const monthSelect = document.getElementById('month');
             const yearSelect = document.getElementById('year');
-            const currentYear = dayjs().year();
-            const currentMonth = dayjs().month();
+            const dateSelect = document.getElementById('date'); // Date select element
+            const startYear = dayjs().year();
+            const startMonth = dayjs().subtract(1, 'month').month();
 
-            monthSelect.value = currentMonth;
+            monthSelect.value = startMonth;
 
-            for (let i = currentYear - 100; i <= currentYear + 100; i++) {
+            for (let i = startYear - 100; i <= startYear + 100; i++) {
                 const option = document.createElement('option');
                 option.value = i;
                 option.textContent = i;
                 yearSelect.appendChild(option);
-                if (i === currentYear) {
+                if (i === startYear) {
+                    option.selected = true;
+                }
+            }
+
+            for (let i = 1; i <= 31; i++) { // Populate date dropdown
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                dateSelect.appendChild(option);
+                if (i === 26) { // Set default to 26
                     option.selected = true;
                 }
             }
         }
 
+
         async function calculateWorkdays() {
             const selectedMonth = parseInt(document.getElementById('month').value);
             const selectedYear = parseInt(document.getElementById('year').value);
-            const startMonth = selectedMonth === 11 ? selectedMonth - 1 : selectedMonth; // Set to November if December is selected
-            const endMonth = selectedMonth === 11 ? selectedMonth : (selectedMonth + 1) % 12; // Set to December if December is selected
-            const start = dayjs().year(selectedYear).month(startMonth).date(26);
-            const endYear = selectedMonth === 11 ? selectedYear : selectedYear + 1; // Keep same year if December is selected
-            const end = dayjs().year(endYear).month(endMonth).date(25);
+            const selectedDate = parseInt(document.getElementById('date').value); // Get the selected date
+            const start = dayjs().year(selectedYear).month(selectedMonth).date(selectedDate);
+            const endYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear; // Increment the year if December is selected
+            const end = dayjs().year(endYear).month((selectedMonth + 1) % 12).date(selectedDate - 1); // Set end date to a day before the start date in the next month
 
             // Fetch holidays
             const holidaysResponse = await fetch('https://apigw1.bot.or.th/bot/public/financial-institutions-holidays/?year=' + selectedYear, {
@@ -118,14 +132,14 @@
             const publicHolidaysList = publicHolidays.length > 0 ? "<ul>" + publicHolidays.join('') + "</ul>" : "None";
 
             document.getElementById('result').innerHTML = "<strong>Selected Date:</strong> " + start.format('DD MMMM YYYY') + " - " + end.format('DD MMMM YYYY') + "<br>" +
-                "<strong>Total Workdays:</strong> " + count + "<br> <br>" +
                 "<strong>Total Days:</strong> " + totalDaysInMonth + "<br>" +
+                "<strong>Total Workdays:</strong> " + count + "<br>" +
                 "<strong>Total Weekend Days:</strong> " + totalWeekendDays + "<br>" +
                 "<strong>Total Public Holidays:</strong> " + publicHolidays.length + "<br>" +
                 "<strong>Public Holidays:</strong> " + publicHolidaysList;
         }
 
-        populateYearsAndMonths();
+        populateYearsMonthsAndDates();
 
     </script>
 </body>
