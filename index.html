@@ -117,7 +117,7 @@
             const totalDaysInMonth = end.diff(start, 'days') + 1;
             const publicHolidaysList = publicHolidays.length > 0 ? "<ul>" + publicHolidays.join('') + "</ul>" : "None";
 
-            document.getElementById('result').innerHTML = "<strong>Selected Date:</strong> " + start.format('DD MMMM') + " - " + end.format('DD MMMM YYYY') + "<br>" +
+            document.getElementById('result').innerHTML = "<strong>Selected Date:</strong> " + start.format('DD MMMM YYYY') + " - " + end.format('DD MMMM YYYY') + "<br>" +
                 "<strong>Total Workdays:</strong> " + count + "<br> <br>" +
                 "<strong>Total Days:</strong> " + totalDaysInMonth + "<br>" +
                 "<strong>Total Weekend Days:</strong> " + totalWeekendDays + "<br>" +
